@@ -1,0 +1,34 @@
+############ Kill XenApp process #######################
+
+# Generate overview of processName, ProcessId X and ServerName
+<#
+
+Function Kill-XAProcess {
+
+    Param ([string]$SAMaccountName, [string]$Application)
+
+    # Get All Processes for Application and user
+    $Allproc = get-xasession | where {$_.accountname -like "*$SAMaccountName*"} | Get-XASessionProcess | select processname, processid, servername | where { $_.ProcessName -like "$Application" }
+ 
+    # Extract servername  
+    $ServerStr = $Allproc | Select-Object -First 1 -ExpandProperty ServerName
+
+    # In case there are more than one processId of same process (for example when there are 3 google tabs open)
+    $ProcessStr = $Allproc | Select-Object -ExpandProperty ProcessId
+
+    # Kill Each Process Id
+    ForEach ($Process in $ProcessStr) { 
+        Stop-XASessionProcess -ServerName $ServerStr -ProcessId $Process -Whatif 
+    } # End ForEach
+} # End Function
+
+Kill-XAProcess -SAMaccountName <name> -Application iexplore.exe
+
+
+#List all processes in particular session 
+Get-XASessionProcess -ServerName Server01 -SessionId 2 |select ProcessName, ProcessId
+ 
+#Stop application running process 5304
+Stop-XASessionProcess -ServerName xenufrdtc01 -ProcessId 5304
+
+#>
